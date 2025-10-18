@@ -8,11 +8,11 @@ from utils import Hash
 app = FastAPI()
 
 class AudioRequest(BaseModel):
-    path: str = Field(..., description="The URL of the audio file to transcribe")
-    type: int = Field(..., description="The type of the audio file (trust me its 1)")
-    lang_code: str = Field(..., description="The language code of the audio file ( en or fa or ar or de or es or fr or it or ja or ko or nl or pl or pt or ru or tr or zh )")
-    diarization: bool = Field(..., description="Whether to enable diarization (bool)")
-    accuracy: str = Field(..., description="The accuracy of the transcription (medium or high or low)")
+    path: str = Field(default="https://domain.com/path/to/file.mp3", description="The URL of the audio file to transcribe")
+    type: int = Field(default=1, description="The type of the audio file (trust me its 1)")
+    lang_code: str = Field(default="en", description="The language code of the audio file ( en or fa or ar or de or es or fr or it or ja or ko or nl or pl or pt or ru or tr or zh )")
+    diarization: bool = Field(default=False, description="Whether to enable diarization (bool)")
+    accuracy: str = Field(default="medium", description="The accuracy of the transcription (medium or high or low)")
 
 
 class CheckRequest(BaseModel):
@@ -49,27 +49,25 @@ class Transcriber:
             "accuracy": accuracy
         }
 
+        hash_obj = Hash()
+
+        random_userid = hash_obj.hash(digest_size=32)
 
         # Headers
+        cookie_str = f"anonymous_user_id={random_userid}; is_first_visit=true"
         headers = {
             "Content-Type": "application/json; charset=UTF-8",
             "Accept": "application/json, text/plain, */*",
             "Origin": "https://notegpt.io",
             "Referer": "https://notegpt.io/audio-to-text-converter",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
+            "Cookie": cookie_str
         }
-        hash_obj = Hash()
 
-        random_userid = hash_obj.hash(digest_size=33)
-        cookies = {
-            "anonymous_user_id": random_userid,
-            "is_first_visit": "true",
-            # for now cf clearance not needed, #TODO; add cf anticaptcha later if needed
-        }
 
         timeout = ClientTimeout(total=self.timeout)
         async with ClientSession(timeout=timeout) as ses:
-            async with ses.post(self.start_url, json=form, headers=headers, cookies=cookies) as res:
+            async with ses.post(self.start_url, json=form, headers=headers) as res:
                 try:
                     res_json = await res.json(content_type=None)
                 except Exception:
