@@ -89,9 +89,20 @@ class Transcriber:
 
 
 @app.post("/transcribe")
-
 #TODO 
 # Add file -> url
-
 async def transcribe(request: AudioRequest):
-    pass
+    ts = Transcriber()
+    try:
+        
+        result = await ts.request_transcribe(
+            path=request.path,
+            type=request.type,
+            diarization=request.diarization,
+            lang_code=request.lang_code,
+            accuracy=request.accuracy
+        )
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
