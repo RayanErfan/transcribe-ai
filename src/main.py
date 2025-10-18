@@ -178,3 +178,6 @@ async def check_event(request: CheckRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host=Config.API_HOST, port=Config.API_PORT) 
