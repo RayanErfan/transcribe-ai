@@ -4,7 +4,7 @@ from fastapi import FastAPI, Form, HTTPException
 from typing import Optional, List, Union, Dict, Any
 from pydantic import BaseModel, Field
 from config import Config
-
+from utils import Hash
 
 app = FastAPI()
 
@@ -51,12 +51,30 @@ class Transcriber:
 
         #TODO; request headers
 
+
+        # Headers
+        headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "Accept": "application/json, text/plain, */*",
+            "Origin": "https://notegpt.io",
+            "Referer": "https://notegpt.io/audio-to-text-converter",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
+        }
+        hash_obj = Hash()
+
+        random_userid = hash_obj.hash(digest_size=33)
+        cookies = {
+            "anonymous_user_id": random_userid,
+            "is_first_visit": "true",
+            # for now cf clearance not needed, #TODO; add cf anticaptcha later if needed
+        }
+
         timeout = ClientTimeout(total=self.timeout)
         async with ClientSession(timeout=timeout) as ses:
-            async with ses.post(self.start_url, params=form, headers=None) as res:
+            async with ses.post(self.start_url, params=form, headers=headers, cookies=cookies) as res:
                 request_status = res.get('code', 0) == 100000 and res.get('message', "failed") == "success"
                 if res.status == 200 and request:
-                    
+
                     res_json = await res.json()
                     event_id = res_json['data']['event_id'] if res_json['data']['event_id'] else None
                     # format response
