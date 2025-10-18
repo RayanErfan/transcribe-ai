@@ -1,6 +1,6 @@
 from hashlib import blake2b
 from typing import Optional
-from random import urandom
+from os import urandom
 import base64
 
 
