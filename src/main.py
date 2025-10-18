@@ -92,33 +92,28 @@ class Transcriber:
 
     async def check_event(self, event_id: str) -> Dict[str, Any]:
         """Polls result for transcription results"""
-
+        hash_obj = Hash()
+        random_userid = hash_obj.hash(digest_size=33)
+        cookie_str = f"anonymous_user_id={random_userid}; is_first_visit=true"
         headers = {
             "Content-Type": "application/json; charset=UTF-8",
             "Accept": "application/json, text/plain, */*",
             "Origin": "https://notegpt.io",
             "Referer": "https://notegpt.io/audio-to-text-converter",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
-        }
-
-        hash_obj = Hash()
-        random_userid = hash_obj.hash(digest_size=33)
-
-        cookies = {
-            "anonymous_user_id": random_userid,
-            "is_first_visit": "true",
+            "Cookie": cookie_str
         }
 
         timeout = ClientTimeout(total=self.timeout)
 
         params = {"record_id": event_id}
-
+        json_data = {}
         async with ClientSession(timeout=timeout) as ses:
             async with ses.get(
                 self.check_url,
                 params=params,
+                json=json_data,
                 headers=headers,
-                cookies=cookies,
             ) as res:
                 try:
                     res_json = await res.json(content_type=None)
