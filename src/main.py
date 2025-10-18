@@ -56,10 +56,16 @@ class Transcriber:
             async with ses.post(self.start_url, params=form, headers=None) as res:
                 request_status = res.get('code', 0) == 100000 and res.get('message', "failed") == "success"
                 if res.status == 200 and request:
-                    #TODO; handle the ok res
-                    pass
+                    
+                    res_json = await res.json()
+                    event_id = res_json['data']['event_id'] if res_json['data']['event_id'] else None
+                    # format response
+                    return {
+                        "status": "ok",
+                        "event_id":  event_id 
+                    }
                 else:
-                    res_text = res.text()
+                    res_text = await res.text()
                     raise HTTPException(res.status, f"We got an error: {res_text}")
 
 
