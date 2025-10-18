@@ -1,4 +1,3 @@
-from unittest import result
 from aiohttp import ClientSession, ClientTimeout, request
 from fastapi import FastAPI, Form, HTTPException
 from typing import Optional, List, Union, Dict, Any
